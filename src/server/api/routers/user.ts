@@ -1,16 +1,11 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { Accounts, Sessions, Users } from "~/db/schema/users";
-import { db } from "~/server/db";
+import { Users } from "~/db/schema/users";
 import { protectedProcedure, router } from "../trpc";
 
 export const userRouter = router({
-  __DANGEROUS__delete: protectedProcedure.mutation(async ({ ctx }) => {
-    if (!ctx.session.user) return null;
-    await db.delete(Users).where(eq(Users.id, ctx.session.user.id));
-    await db.delete(Accounts).where(eq(Accounts.userId, ctx.session.user.id));
-    await db.delete(Sessions).where(eq(Sessions.userId, ctx.session.user.id));
-    return null;
+  get: protectedProcedure.query(async({ctx}) => {
+    return (await ctx.db.select().from(Users).where(eq(Users.id, ctx.session.user.id)))[0]
   }),
   handle: router({
     claim: protectedProcedure
