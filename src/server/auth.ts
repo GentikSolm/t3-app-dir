@@ -1,13 +1,14 @@
 import { and, eq } from "drizzle-orm";
-import { type NextAuthOptions } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import TwitterProvider from "next-auth/providers/twitter";
+import GoogleProvider from "next-auth/providers/google";
+import type { Session as DBSession, User } from "~/db/schema/users";
 import {
   Accounts,
   Sessions,
   Users,
   VerificationTokens,
-  type Session as DBSession,
-  type User,
 } from "~/db/schema/users";
 import { env } from "~/env.mjs";
 import { db } from "./db";
@@ -24,30 +25,26 @@ declare module "next-auth" {
       id: string;
       handle: string | null;
       email: string | null;
-      image: string | null;
+      name: string | null;
     };
   }
   interface DefaultUser {
     id: string;
     handle?: string | null;
+    name?: string | null;
     email?: string | null;
-    image?: string | null;
   }
 }
 
 export const auth: NextAuthOptions = {
-  pages: {
-    signIn: "/sign-in",
-    signOut: "/logout",
-    newUser: "/",
-  },
   adapter: {
     async createUser(data) {
       const id = crypto.randomUUID();
 
-      await db
-        .insert(Users)
-        .values({ email: data.email, image: data.image, id });
+      await db.insert(Users).values({
+        email: data.email,
+        id,
+      });
 
       return (await db
         .select()
@@ -233,13 +230,12 @@ export const auth: NextAuthOptions = {
         id: user.id,
         handle: user.handle,
         email: user.email,
-        image: user.image,
+        name: user.name,
       },
     }),
   },
   providers: [
     DiscordProvider({
-      allowDangerousEmailAccountLinking: true,
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),

@@ -1,14 +1,14 @@
 import type { AdapterAccount } from "@auth/core/adapters";
-import { type InferModel } from "drizzle-orm";
 import {
   int,
   mysqlTable,
   primaryKey,
   timestamp,
   varchar,
-  text
+  text,
 } from "drizzle-orm/mysql-core";
 
+export type User = typeof Users.$inferSelect;
 export const Users = mysqlTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   handle: varchar("handle", { length: 31 }),
@@ -17,11 +17,14 @@ export const Users = mysqlTable("user", {
     mode: "date",
     fsp: 3,
   }).defaultNow(),
-  image: varchar("image", { length: 255 }),
+  bio: varchar("bio", { length: 511 }),
+  cover: varchar("cover", { length: 255 }),
+  name: varchar("name", { length: 31 }),
+  joined: timestamp("joined", { mode: "date" }).defaultNow(),
 });
 
-export type User = InferModel<typeof Users>;
 
+export type Account = typeof Accounts.$inferSelect;
 export const Accounts = mysqlTable(
   "account",
   {
@@ -44,16 +47,14 @@ export const Accounts = mysqlTable(
   }),
 );
 
-export type Account = InferModel<typeof Accounts>;
-
+export type Session = typeof Sessions.$inferSelect;
 export const Sessions = mysqlTable("session", {
   sessionToken: varchar("sessionToken", { length: 255 }).notNull().primaryKey(),
   userId: varchar("userId", { length: 255 }).notNull(),
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-export type Session = InferModel<typeof Sessions>;
-
+export type VerificationToken = typeof VerificationTokens.$inferSelect;
 export const VerificationTokens = mysqlTable(
   "verificationToken",
   {
@@ -65,5 +66,3 @@ export const VerificationTokens = mysqlTable(
     compoundKey: primaryKey(vt.identifier, vt.token),
   }),
 );
-
-export type VerificationToken = InferModel<typeof VerificationTokens>;
