@@ -1,0 +1,33 @@
+name: Deploy a deploy request
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+
+jobs:
+  deploy_deploy_request:
+    if: (github.actor != 'dependabot[bot]') && (contains(github.head_ref, 'dependabot/') == false)
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: Setup pscale
+        uses: planetscale/setup-pscale-action@v1
+      - name: Use pscale
+        id: pscale
+        env:
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
+        run: |
+          echo "deploy_number=$(pscale deploy-request --org biblish --format json ls papertrail | jq '.[0].number')" >> "$GITHUB_OUTPUT"
+      - name: Deploy a deploy request
+        if: steps.pscale.outputs.deploy_number
+        uses: planetscale/deploy-deploy-request-action@v3
+        with:
+          org_name: biblish
+          database_name: papertrail
+          branch_name: stage
+          number: ${{steps.pscale.outputs.deploy_number}}
+        env:
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}

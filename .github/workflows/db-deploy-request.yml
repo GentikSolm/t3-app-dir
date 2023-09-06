@@ -1,0 +1,25 @@
+name: Create a branch
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  create_deploy_request:
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]') && (contains(github.head_ref, 'dependabot/') == false)
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: Create a deploy request
+        uses: planetscale/create-deploy-request-action@v2
+        id: create_deploy_request
+        with:
+          org_name: biblish
+          database_name: papertrail
+          branch_name: stage
+        env:
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
+      - name: Get the deploy request number
+        run: |
+          echo "Deploy request number: ${{ steps.create_deploy_request.outputs.number }}"
