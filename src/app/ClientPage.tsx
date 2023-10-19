@@ -2,25 +2,33 @@
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/api/root";
 import { trpc } from "./providers";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/20/solid";
 import { SITE_NAME } from "~/name";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ClientPage({
   user,
 }: {
   user: NonNullable<inferRouterOutputs<AppRouter>["user"]["get"]>;
 }) {
+  const [isTransitioning, startTransion] = useTransition();
   const [handle, setHandle] = useState("");
   const router = useRouter();
   const isClaimed = trpc.user.handle.isClaimed.useQuery({ handle });
   const claimHandle = trpc.user.handle.claim.useMutation({
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      // Since our user object is fetched server side, we use router.refresh to refetch it.
+      // Start transition is used to track loading of router.refresh.
+      startTransion(() => router.refresh());
+      toast.success(`${handle} claimed as Handle!`);
+    },
   });
+  const isLoading = claimHandle.isLoading || isTransitioning
   return (
     <>
       <div className="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow">
@@ -88,7 +96,7 @@ export default function ClientPage({
             <button
               className="mt-3 rounded-md bg-green-200 px-2 py-1.5 text-green-800 transition-colors hover:bg-green-600 hover:text-green-50"
               onClick={() => claimHandle.mutate({ handle })}
-              disabled={!isClaimed.data || isClaimed.isFetching}
+              disabled={!isClaimed.data || isClaimed.isFetching || isLoading}
             >
               Claim Handle
             </button>

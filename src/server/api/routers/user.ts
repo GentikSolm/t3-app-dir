@@ -14,7 +14,6 @@ export const userRouter = router({
       .input(z.object({ handle: z.string() }))
       .mutation(async ({ ctx, input }) => {
         // Just an example mutation.
-
         if (input.handle === undefined) return false;
         if (input.handle === "") return false;
         if (!input.handle.match(/^[a-z0-9]+$/)) return false;
@@ -35,7 +34,7 @@ export const userRouter = router({
           .where(eq(Users.id, ctx.session.user.id));
         return true;
       }),
-    isClaimed: publicProcedure
+    isClaimed: protectedProcedure
       .input(z.object({ handle: z.string() }))
       .query(async ({ ctx, input }) => {
         if (
