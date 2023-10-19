@@ -35,7 +35,7 @@ export const userRouter = router({
           .where(eq(Users.id, ctx.session.user.id));
         return true;
       }),
-    isClaimed: protectedProcedure
+    isClaimed: publicProcedure
       .input(z.object({ handle: z.string() }))
       .query(async ({ ctx, input }) => {
         if (
