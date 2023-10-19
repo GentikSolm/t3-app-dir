@@ -15,3 +15,9 @@ Featuring
 - Mutations are always tRPC
 - Refresh page load data via router.refresh()
 - Track router.refresh() progress via useTransition
+
+### Goodies
+
+- Boilerplate for MDX components, use tailwind's prose.
+- Pretty toaster library
+- Custom nextauth provider layer that is easy to modify
