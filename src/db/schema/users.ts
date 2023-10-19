@@ -17,8 +17,6 @@ export const Users = mysqlTable("user", {
     mode: "date",
     fsp: 3,
   }).defaultNow(),
-  bio: varchar("bio", { length: 511 }),
-  cover: varchar("cover", { length: 255 }),
   name: varchar("name", { length: 31 }),
   joined: timestamp("joined", { mode: "date" }).defaultNow(),
 });

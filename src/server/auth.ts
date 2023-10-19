@@ -1,8 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import TwitterProvider from "next-auth/providers/twitter";
-import GoogleProvider from "next-auth/providers/google";
 import type { Session as DBSession, User } from "~/db/schema/users";
 import {
   Accounts,
@@ -37,10 +35,26 @@ declare module "next-auth" {
 }
 
 export const auth: NextAuthOptions = {
+  pages: {
+    signIn: "/sign-in",
+    signOut: "/",
+    newUser: "/",
+  },
+  // Needed for apple oauth.
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   adapter: {
     async createUser(data) {
       const id = crypto.randomUUID();
-
       await db.insert(Users).values({
         email: data.email,
         id,

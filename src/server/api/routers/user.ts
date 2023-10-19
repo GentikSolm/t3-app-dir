@@ -1,16 +1,20 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { Users } from "~/db/schema/users";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const userRouter = router({
-  get: protectedProcedure.query(async({ctx}) => {
-    return (await ctx.db.select().from(Users).where(eq(Users.id, ctx.session.user.id)))[0]
+  get: publicProcedure.query(async({ctx}) => {
+    if(!ctx.session?.user) return null
+    const [user] = await ctx.db.select().from(Users).where(eq(Users.id, ctx.session.user.id))
+    return user
   }),
   handle: router({
     claim: protectedProcedure
       .input(z.object({ handle: z.string() }))
       .mutation(async ({ ctx, input }) => {
+        // Just an example mutation.
+
         if (input.handle === undefined) return false;
         if (input.handle === "") return false;
         if (!input.handle.match(/^[a-z0-9]+$/)) return false;
