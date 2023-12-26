@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
 import type { Session as DBSession, User } from "~/db/schema/users";
 import {
   Accounts,
@@ -10,6 +12,7 @@ import {
 } from "~/db/schema/users";
 import { env } from "~/env.mjs";
 import { db } from "./db";
+import { raise } from "~/raise";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -53,6 +56,7 @@ export const auth: NextAuthOptions = {
     },
   },
   adapter: {
+    // @@NOTE this lets us define custom columns in our database
     async createUser(data) {
       const id = crypto.randomUUID();
       await db.insert(Users).values({
@@ -230,7 +234,26 @@ export const auth: NextAuthOptions = {
       return undefined;
     },
   },
+  session:
+      // @@NOTE swap to jwt for preview
+    env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "development"
+      ? {
+          strategy: "jwt",
+        }
+      : undefined,
   callbacks: {
+    jwt:
+      // @@NOTE swap to jwt for preview
+      env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "development"
+        ? async ({ token }) => {
+            const [user] = await db
+              .select()
+              .from(Users)
+              .where(eq(Users.email, token.email!));
+            const res = { ...token, user };
+            return res;
+          }
+        : undefined,
     redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
@@ -238,20 +261,66 @@ export const auth: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        id: user.id,
-        handle: user.handle,
-        email: user.email,
-        name: user.name,
-      },
-    }),
+    session: ({ session, user, token }) => {
+      // @@NOTE session for jwt's is actually the token.user for preview deployments
+      if (env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "development")
+        return {
+          ...session,
+          user: token.user as User,
+        };
+      return {
+        ...session,
+        user: {
+          id: user.id,
+          handle: user.handle,
+          email: user.email,
+          name: user.name,
+        },
+      };
+    },
   },
-  providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-  ],
+  providers:
+    // @@NOTE Use credentials provider for preview deployments
+    env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "development"
+      ? [
+          CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+              handle: {
+                label: "handle",
+                type: "text",
+                placeholder: "jsmith",
+              },
+              password: { label: "Password", type: "password" },
+            },
+            async authorize(data) {
+              if (!data?.handle) return null;
+              // @@NOTE Whitelist accounts that we can log into preview with
+              if (!["josh"].includes(data.handle))
+                return null;
+              const user = await db
+                .select()
+                .from(Users)
+                .where(eq(Users.handle, data.handle));
+              return user.at(0) ?? raise("Where's our User? Do we need to seed?");
+            },
+          }),
+        ]
+      : [
+          DiscordProvider({
+            allowDangerousEmailAccountLinking: true,
+            clientId: env.DISCORD_CLIENT_ID,
+            clientSecret: env.DISCORD_CLIENT_SECRET,
+          }),
+        ],
+};
+
+export const isLoggedIn = () => {
+  // @@NOTE util function for checking if there is a session token
+  // without actually querying the database. This is optimistic,
+  // the toekn could be invalid or expired, so make sure to use carefully.
+  return (
+    cookies().has("__Secure-next-auth.session-token") ||
+    cookies().has("next-auth.session-token")
+  );
 };

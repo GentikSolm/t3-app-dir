@@ -2,14 +2,7 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-import rehypeHighlight from "rehype-highlight";
 await import("./src/env.mjs");
-
-const withMDX = (await import("@next/mdx")).default({
-  options: {
-    rehypePlugins: [[rehypeHighlight(), {}]],
-  },
-});
 
 const { withAxiom } = await import("next-axiom");
 
@@ -23,4 +16,4 @@ const config = {
   },
 };
 
-export default withAxiom(withMDX( config ));
+export default withAxiom( config );

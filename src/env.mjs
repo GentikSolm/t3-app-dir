@@ -25,6 +25,7 @@ export const env = createEnv({
     DATABASE_HOST: z.string(),
     DATABASE_USERNAME: z.string(),
     DATABASE_PASSWORD: z.string(),
+    VERCEL_ENV: z.enum(["preview", "production", "development"]).optional(),
   },
 
   /**
@@ -36,6 +37,7 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
   },
   runtimeEnv: {
+    VERCEL_ENV: process.env.VERCEL_ENV,
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,

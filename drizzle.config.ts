@@ -1,11 +1,12 @@
 import { config } from "dotenv";
-import type { Config } from "drizzle-kit";
-config();
+import { defineConfig } from "drizzle-kit";
 
-export default {
-  schema: "./src/db/schema/*",
+config({ path: "./../.env" });
+
+export default defineConfig({
+  schema: "./src/db/*",
   driver: "mysql2",
   dbCredentials: {
-    connectionString: `mysql://${process.env.DATABASE_USERNAME}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_HOST}/papertrail?ssl={"rejectUnauthorized":true}`,
+    uri: `mysql://${process.env.DATABASE_USERNAME}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_HOST}/carbon?ssl={"rejectUnauthorized":true}`,
   },
-} satisfies Config;
+});

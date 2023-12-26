@@ -3,13 +3,10 @@ import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/api/root";
 import { trpc } from "./providers";
 import { useState, useTransition } from "react";
-import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/20/solid";
 import { SITE_NAME } from "~/name";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { AlertTriangle, CheckCircleIcon } from "lucide-react";
 
 export default function ClientPage({
   user,
@@ -69,7 +66,7 @@ export default function ClientPage({
             <p className="mt-2 min-h-[1.5rem] text-sm font-bold">
               {isClaimed.isFetching ? (
                 <span className="flex gap-1 text-yellow-500">
-                  <ExclamationTriangleIcon
+                  <AlertTriangle
                     aria-hidden="true"
                     className="pointer-events-none inline h-5 w-5"
                   />
