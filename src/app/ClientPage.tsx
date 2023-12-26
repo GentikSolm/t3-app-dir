@@ -20,7 +20,7 @@ export default function ClientPage({
   const claimHandle = trpc.user.handle.claim.useMutation({
     onSuccess: () => {
       // Since our user object is fetched server side, we use router.refresh to refetch it.
-      // Start transition is used to track loading of router.refresh.
+      // @@NOTE Start transition is used to track loading of router.refresh.
       startTransion(() => router.refresh());
       toast.success(`${handle} claimed as Handle!`);
     },
@@ -100,6 +100,11 @@ export default function ClientPage({
           </div>
         </>
       )}
+      <div className='p-2 mt-2 flex justify-center'>
+      <button onClick={() => toast.success('Cheers!')} className='bg-white text-sm text-gray-800 px-2 py-1.5 hover:shadow-md transition-shadow rounded-md shadow-lg'>
+      Cheers?
+      </button>
+      </div>
     </>
   );
 }
