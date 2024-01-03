@@ -27,7 +27,7 @@ jobs:
 
       - name: Deploy a deploy request
         if: steps.pscale.outputs.deploy_number
-        uses: planetscale/deploy-deploy-request-action@v3
+        uses: planetscale/deploy-deploy-request-action@v4
         with:
           org_name: biblish
           database_name: _ # YOUR DATABASE
