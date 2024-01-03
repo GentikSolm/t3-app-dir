@@ -22,7 +22,7 @@ jobs:
           PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
           PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
         run: |
-          command="pscale deploy-request --org biblish create papertrail stage"
+          command="pscale deploy-request --org [YOUR ORG] create [YOUR DATABASE] stage"
           output=$(eval $command)
           ret=$?
           if [ $ret -ne 0 ]; then

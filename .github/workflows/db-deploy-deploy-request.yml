@@ -23,14 +23,14 @@ jobs:
           PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
           PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
         run: |
-          echo "deploy_number=$(pscale deploy-request --org biblish --format json ls papertrail | jq '.[0].number')" >> "$GITHUB_OUTPUT"
+          echo "deploy_number=$(pscale deploy-request --org [YOUR ORG] --format json ls [YOUR DATABASE] | jq '.[0].number')" >> "$GITHUB_OUTPUT"
 
       - name: Deploy a deploy request
         if: steps.pscale.outputs.deploy_number
         uses: planetscale/deploy-deploy-request-action@v3
         with:
           org_name: biblish
-          database_name: papertrail
+          database_name: _ # YOUR DATABASE
           branch_name: stage
           number: ${{steps.pscale.outputs.deploy_number}}
         env:
